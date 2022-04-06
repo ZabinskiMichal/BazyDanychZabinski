@@ -1,0 +1,179 @@
+--zad1
+CREATE DATABASE firma;
+
+
+
+--zad2
+CREATE SCHEMA rozliczenia;
+
+
+
+--zad3
+
+--utworzenie tabeli pracownicy w schemacie rozliczenia, schemat znajduje się w bazie danych firma
+CREATE TABLE rozliczenia.pracownicy(
+	
+	--SERIAL w postgresie pozwala na tworzenie pol autoinkrementowalnych
+	--SERIAL sprawia ze pole jest NOT NULL
+	Id_pracownika SERIAL PRIMARY KEY,
+	
+	--NVARCHAR pozwala na przechowywanie znakow w innych alfabetach niz angielski
+	Imie VARCHAR (100) NOT NULL,
+	Nazwisko VARCHAR (100) NOT NULL,
+	Adres VARCHAR (100),
+	Telefon INT
+);
+
+CREATE TABLE rozliczenia.godziny(
+	Id_godziny SERIAL PRIMARY KEY,
+	dejt DATE NOT NULL,
+	liczba_godzin INT, 
+	Id_pracownika INT NOT NULL
+);
+
+--tworzymy połączenie miedzy tabelami godziny oraz pracownicy,
+--chcac utworzyc klucz obcy prosty musimy zadeklarowac do jakiego atrybytu
+--z jakiej tabeli nasz klucz bedzie sie odnosil
+--wskazyjemy tym samym z jaką tabela bedzie tworzony związek
+
+--do tabeli rozliczenia.godziny, dodajemy klucz obcy Id_pracownika, ktory jest kluczem glownym w tabeli pracownicy
+ALTER TABLE rozliczenia.godziny ADD CONSTRAINT foreignKeyId FOREIGN KEY (Id_pracownika) REFERENCES rozliczenia.pracownicy(Id_pracownika);
+--klucz główny w podgladzie jest oznaczany na zloto
+--klucz obcy jest oznaczany na srebrno
+
+
+--zmiana typu danych z int na float za pomoca ATLTER TABLE 
+--w postgresie nalezy dodac jeszcze slowo TYPE
+ALTER TABLE rozliczenia.godziny ALTER COLUMN liczba_godzin TYPE FLOAT;
+
+
+CREATE TABLE rozliczenia.pensje(
+	Id_pensji SERIAL PRIMARY KEY,
+	Stanowisko VARCHAR(100),
+	Kwota FLOAT,
+	Id_premii INT NOT NULL
+);
+
+CREATE TABLE rozliczenia.premie(
+	Id_premii SERIAL PRIMARY KEY,
+	rodzaj VARCHAR(100),
+	kwota FLOAT
+);
+
+--dodanie klucza obcego id_premii do tabeli pensje, ktory jest kluczem głownym w tabeli premie
+--[do jakiej tabeli], co, [z jakiej tabli]
+ALTER TABLE rozliczenia.pensje ADD CONSTRAINT kluczObcy FOREIGN KEY (Id_premii) REFERENCES rozliczenia.premie(Id_premii);
+
+--/id/imie/nazwisko/adres/nr.tel
+--podczas wpisuwania danych do tableli, w pola autoinkrementowalne wystarczy wpisac DEFAULT
+INSERT INTO rozliczenia.pracownicy VALUES (DEFAULT, 'Maciej', 'Smith', 'Main43', 781904374);
+INSERT INTO rozliczenia.pracownicy VALUES (DEFAULT, 'Michal', 'Brown', 'Krzywa 88', 781036285);
+INSERT INTO rozliczenia.pracownicy VALUES (DEFAULT, 'Kamil', 'Williams', 'Krzywa 23', 905014081);
+INSERT INTO rozliczenia.pracownicy VALUES (DEFAULT, 'Robert', 'David', 'Robotnicza 1', 602432891);
+INSERT INTO rozliczenia.pracownicy VALUES (DEFAULT, 'Edek', 'Lopez', 'Zwyciestwa 57', 683561006);
+INSERT INTO rozliczenia.pracownicy VALUES (DEFAULT, 'Monika', 'Gonzales', 'Wesola 4', 649065346);
+INSERT INTO rozliczenia.pracownicy VALUES (DEFAULT, 'Kasia', 'Taylor', 'Swierkowa 3', 909812345);
+INSERT INTO rozliczenia.pracownicy VALUES (DEFAULT, 'Steve', 'Lee', 'Slowikow 8', 771090981);
+INSERT INTO rozliczenia.pracownicy VALUES (DEFAULT, 'Robert', 'Martin', 'Kreta 15', 130909059);
+INSERT INTO rozliczenia.pracownicy VALUES (DEFAULT, 'Adam', 'More', 'Elsnera 40', 910295191);
+
+--wyswietlenie całej tabeli pracownicy
+SELECT * FROM rozliczenia.pracownicy;
+
+--wyczyszczenie tabeli pracownicy
+--Delete from rozliczenia.pracownicy;
+
+--jesli jednak chcemy usunac wszystkie rekordy, lepiej jest uzyc TRUNCATE, jest o wiele szy
+
+--dodanie rekordow to tabeli godziny
+
+--/idGodziny/data/liczbaGodzin/idPracownika
+--format zapisywania daty: 'rrrr-mm-dd'
+INSERT INTO rozliczenia.godziny VALUES(DEFAULT, '2021-03-12', 4, 4);
+INSERT INTO rozliczenia.godziny VALUES(DEFAULT, '2021-03-13', 7.5, 1);
+INSERT INTO rozliczenia.godziny VALUES(DEFAULT, '2021-03-12', 8.8, 9);
+INSERT INTO rozliczenia.godziny VALUES(DEFAULT, '2021-03-15', 8, 5);
+INSERT INTO rozliczenia.godziny VALUES(DEFAULT, '2021-03-16', 8, 6);
+INSERT INTO rozliczenia.godziny VALUES(DEFAULT, '2021-03-16', 7, 2);
+INSERT INTO rozliczenia.godziny VALUES(DEFAULT, '2021-03-22', 7.5, 3);
+INSERT INTO rozliczenia.godziny VALUES(DEFAULT, '2021-03-24', 9, 7);
+INSERT INTO rozliczenia.godziny VALUES(DEFAULT, '2021-03-26', 8, 8);
+INSERT INTO rozliczenia.godziny VALUES(DEFAULT, '2021-03-29', 7.5, 10);
+
+--wyswietlenie całej tablei godziny
+SELECT * FROM rozliczenia.godziny;
+
+--dodanie rekodrów do tabeli pensje
+--/IdPensji/stanowisko/kwota/idPremii
+INSERT INTO rozliczenia.pensje VALUES(DEFAULT, 'Programista', 4000, 4);
+INSERT INTO rozliczenia.pensje VALUES(DEFAULT, 'JuniorJavaDeveloper', 400, 1);
+INSERT INTO rozliczenia.pensje VALUES(DEFAULT, 'Księgowy', 3000, 5);
+INSERT INTO rozliczenia.pensje VALUES(DEFAULT, 'Project manager', 7400, 6);
+INSERT INTO rozliczenia.pensje VALUES(DEFAULT, 'DevOps', 8500, 9);
+INSERT INTO rozliczenia.pensje VALUES(DEFAULT, 'JuniorJavaDeveloper', 5500, 2);
+INSERT INTO rozliczenia.pensje VALUES(DEFAULT, 'SeniorPhpDeveloper', 11500, 8);
+INSERT INTO rozliczenia.pensje VALUES(DEFAULT, 'Specialista HR', 8700, 10);
+INSERT INTO rozliczenia.pensje VALUES(DEFAULT, 'Specialista PR', 6700, 7);
+INSERT INTO rozliczenia.pensje VALUES(DEFAULT, 'DB specialist', 9400, 3);
+
+--wyswmietlnie wszystkich wartosci z tabeli pensje
+SELECT * FROM rozliczenia.pensje;
+
+
+--aby calosc dzialala, trzeba najpierw wypelmnic dane w tablei premie
+--dodanie rekordów do tabeli premie
+--/id_premii/rodzaj/kwota/
+INSERT INTO rozliczenia.premie VALUES(DEFAULT, 'Swietna kreatywnosc', 200);
+INSERT INTO rozliczenia.premie VALUES(DEFAULT, 'Dowiezione zadania', 100);
+INSERT INTO rozliczenia.premie VALUES(DEFAULT, 'Rozbudowa home office', 200);
+INSERT INTO rozliczenia.premie VALUES(DEFAULT, 'Rozbudowa stanowiska', 500);
+INSERT INTO rozliczenia.premie VALUES(DEFAULT, 'Premia na urlop', 700);
+INSERT INTO rozliczenia.premie VALUES(DEFAULT, 'Dowiezione zadania', 300);
+INSERT INTO rozliczenia.premie VALUES(DEFAULT, 'Pozyskanie klienta', 200);
+INSERT INTO rozliczenia.premie VALUES(DEFAULT, 'Blyskotliwosc', 1000);
+INSERT INTO rozliczenia.premie VALUES(DEFAULT, 'Myslenie poza schematem', 200);
+INSERT INTO rozliczenia.premie VALUES(DEFAULT, 'Premia sportowa', 1000);
+
+--wyswietlnie całej całej zawartosci tableli premie
+SELECT * FROM rozliczenia.premie;
+
+
+
+--zad5, wyswietlenie nazwisk pracownikow oraz ich adresow
+
+--kolejne atrubuty do wyswietlenia podajemy po przecinku
+SELECT Nazwisko, Adres FROM rozliczenia.pracownicy;
+
+
+
+--Zad6, zapytanie ktore przekonwertuje daty w tabeli godziyn tak, aby wyswietlana byla informacja jaki to dzien tygdnia
+--oraz jaki to miesiac
+
+--atrubt dow odpowiada za zwrocenie dnia tygodnia
+SELECT date_part('dow', dejt) AS DzienTygodnia, DATE_PART('month', dejt) AS Miesiac, dejt FROM rozliczenia.godziny; 
+
+--zad7, zamiana nazwy kolumny z kwota na kwota brutto w tabeli pensje
+ALTER TABLE rozliczenia.pensje RENAME COLUMN Kwota TO kwota_brutto;
+
+--sparawdzenie zmiany
+SELECT * FROM rozliczenia.pensje;
+
+--operacja sluzaca do usuwania danej kolumny
+--ALTER TABLE rozliczenia.pensje DROP COLUMN Kwota_brutto;
+
+--dodanie nowej kolumny: kwota netto ktora bedzie miala automatycznie uzupelnialne pole
+--stored toznacza cos ala przechowywany rodzaj generowanych kolumn, wiecej o tym w dokumentacji postgresa
+ALTER TABLE rozliczenia.pensje ADD COLUMN Kwota_netto FLOAT GENERATED ALWAYS AS (Kwota_brutto/1.23) STORED;
+
+--sprawdzenie zmian
+SELECT * FROM rozliczenia.pensje;
+
+
+
+
+
+
+
+
+
+
