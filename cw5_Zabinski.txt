@@ -1,0 +1,314 @@
+--zad1
+CREATE DATABASE firma;
+
+--zad 2
+CREATE SCHEMA ksiegowosc;
+
+--zad 4
+--serial w postgresie pozwala na tworzenie atrybutow autoinkrementowanych, gwarantuje tez ze pole jest NOT LULL
+
+--dodanie komentarza do tabeli pracownicy
+--jeden objekt moze miec tylko jeden komentarz
+--aby usunac komentarz po IS wpisujemy NULL
+
+CREATE TABLE ksiegowosc.pracownicy(
+id_pracownika SERIAL PRIMARY KEY, 
+	Imie VARCHAR(50),
+	Nazwisko VARCHAR (50),
+	Adres VARCHAR (50),
+	telefon INT
+)
+COMMENT ON TABLE ksiegowosc.pracownicy IS 'Tabela przechowujaca pracowników';
+
+
+
+
+CREATE TABLE ksiegowosc.godziny(
+	id_godziny SERIAL PRIMARY KEY,
+	dejt DATE,
+	liczba_godzin INT,
+	id_pracownika INT NOT NULL
+)
+
+COMMENT ON TABLE ksiegowosc.godziny is 'Tabela zawierajaca informacje o przepracowanych godzinach';
+
+
+--zamiana pola liczba_godzin z inta na float:
+ALTER TABLE ksiegowosc.godziny ALTER COLUMN liczba_godzin TYPE FLOAT;
+
+/*
+Aby utworzyć połączenie pomiedzy tabeliami rozliczczenia.godziny a rozlicznia.pracownicy wykorzystatmy polecenie ALTER TABLE
+w połączneniu z add CONSTRAINT, FOREIGN KEY ORAZ REFERENCES
+*/
+
+ALTER TABLE ksiegowosc.godziny ADD CONSTRAINT foreignKeyIdPracownika FOREIGN KEY (id_pracownika) REFERENCES ksiegowosc.pracownicy(id_pracownika)
+
+CREATE TABLE ksiegowosc.pensja(
+	id_pensji SERIAL PRIMARY KEY,
+	stanowisko VARCHAR(50),
+	kwota FLOAT
+)
+
+COMMENT ON COLUMN ksiegowosc.pensja.id_pensji IS 'kolumna z id pensji';
+
+
+
+/*
+w postgresie komentarze wielonijinokwe tworzymy tak samo jak w wiekszosci jezykow
+*/
+
+--tablela przechowujaca informacje o premiach
+CREATE TABLE ksiegowosc.premia(
+	id_premii SERIAL PRIMARY KEY,
+	rodzaj VARCHAR(50),
+	kwota FLOAT
+)
+
+COMMENT ON TABLE ksiegowosc.premia IS  'Tabela do przechowywania premii';
+
+
+
+
+COMMENT ON TABLE ksiegowosc.wynagrodzenie IS 'Tabela łącząca pozostałe table w schemiacie ksiegowosc';
+COMMENT ON COLUMN ksiegowosc.wynagrodzenie.id_pracownika IS 'klucz obcy, bedący kluczem głowym w tabeli pracownicy';
+CREATE TABLE ksiegowosc.wynagrodzenie(
+	id_wynagrodzenia SERIAL PRIMARY KEY,
+	dejt DATE NOT NULL,
+	id_pracownika INT NOT NULL REFERENCES ksiegowosc.pracownicy(id_pracownika),
+	id_godziny INT,
+	id_pensji INT NOT NULL,
+	id_premii INT
+)
+
+
+--dodanie polaczenia pomiedzy tabela ksiegowosc.wynagrodzenie a pozostalymi tabelami, czyli dodanie kluczy obcych
+
+ALTER TABLE ksiegowosc.wynagrodzenie ADD CONSTRAINT foreingKeyIdGodziny FOREIGN KEY (id_godziny) REFERENCES ksiegowosc.godziny(id_godziny);
+ALTER TABLE ksiegowosc.wynagrodzenie ADD CONSTRAINT foreignKeyIdPensji FOREIGN KEY (id_pensji) REFERENCES ksiegowosc.pensja(id_pensji);
+ALTER TABLE ksiegowosc.wynagrodzenie ADD CONSTRAINT foreignKeyIdPremii FOREIGN KEY (id_premii) REFERENCES ksiegowosc.premia (id_premii);
+
+
+/*
+wprowadzneie 10 rekodrow to tabeli ksiegowosc.pracownicy
+wazne jest to aby pamietac o slowie kluczowym VALUES
+*/
+
+INSERT INTO ksiegowosc.pracownicy VALUES (DEFAULT, 'Rafał', 'Wysoki', 'dluga 15', 440321820);
+INSERT INTO ksiegowosc.pracownicy VALUES (DEFAULT, 'Michal', 'Brown', 'Krzywa 88', 781036285);
+INSERT INTO ksiegowosc.pracownicy VALUES (DEFAULT, 'Kamil', 'Williams', 'Krzywa 23', 905014081);
+INSERT INTO ksiegowosc.pracownicy VALUES (DEFAULT, 'Robert', 'David', 'Robotnicza 1', 602432891);
+INSERT INTO ksiegowosc.pracownicy VALUES (DEFAULT, 'Edek', 'Lopez', 'Zwyciestwa 57', 683561006);
+INSERT INTO ksiegowosc.pracownicy VALUES (DEFAULT, 'Monika', 'Gonzales', 'Wesola 4', 649065346);
+INSERT INTO ksiegowosc.pracownicy VALUES (DEFAULT, 'Kasia', 'Taylor', 'Swierkowa 3', 909812345);
+INSERT INTO ksiegowosc.pracownicy VALUES (DEFAULT, 'Steve', 'Lee', 'Slowikow 8', 771090981);
+INSERT INTO ksiegowosc.pracownicy VALUES (DEFAULT, 'Katarzyna', 'Nowakówna', 'Kreta 15', 130909059);
+INSERT INTO ksiegowosc.pracownicy VALUES (DEFAULT, 'Adam', 'More', 'Elsnera 40', 910295191);
+
+
+
+--prowadzenie rekodrow do tabeli godziny
+
+/*
+date w postgresie w pisujemy w pojedynczych apostrofach, format jest nastepujacy:
+'YYYY-MM-DD'
+
+id_godziny/data/liczba_godzin/id_pracownika
+*/
+
+INSERT INTO ksiegowosc.godziny VALUES (DEFAULT, '2021-03-12', 4, 4);
+INSERT INTO ksiegowosc.godziny VALUES(DEFAULT, '2021-03-13', 7.5, 1);
+INSERT INTO ksiegowosc.godziny VALUES(DEFAULT, '2021-03-12', 8.8, 9);
+INSERT INTO ksiegowosc.godziny VALUES(DEFAULT, '2021-03-15', 8, 5);
+INSERT INTO ksiegowosc.godziny VALUES(DEFAULT, '2021-03-16', 8, 6);
+INSERT INTO ksiegowosc.godziny VALUES(DEFAULT, '2021-03-16', 7, 2);
+INSERT INTO ksiegowosc.godziny VALUES(DEFAULT, '2021-03-22', 7.5, 3);
+INSERT INTO ksiegowosc.godziny VALUES(DEFAULT, '2021-03-24', 240, 7);
+INSERT INTO ksiegowosc.godziny VALUES(DEFAULT, '2021-03-26', 8, 8);
+INSERT INTO ksiegowosc.godziny VALUES(DEFAULT, '2021-03-29', 180, 10);
+
+
+--dodanie rekordow to tablei rozliczenia.pensja
+INSERT INTO ksiegowosc.pensja VALUES(DEFAULT, 'Programista', 4000);
+INSERT INTO ksiegowosc.pensja VALUES(DEFAULT, 'JuniorJavaDeveloper', 400);
+INSERT INTO ksiegowosc.pensja VALUES(DEFAULT, 'Księgowy', 1150);
+INSERT INTO ksiegowosc.pensja VALUES(DEFAULT, 'Project manager', 7400);
+INSERT INTO ksiegowosc.pensja VALUES(DEFAULT, 'DevOps', 8500);
+INSERT INTO ksiegowosc.pensja VALUES(DEFAULT, 'JuniorJavaDeveloper', 5500);
+INSERT INTO ksiegowosc.pensja VALUES(DEFAULT, 'SeniorPhpDeveloper', 11500);
+INSERT INTO ksiegowosc.pensja VALUES(DEFAULT, 'Specialista HR', 8700);
+INSERT INTO ksiegowosc.pensja VALUES(DEFAULT, 'Specialista HR', 6700);
+INSERT INTO ksiegowosc.pensja VALUES(DEFAULT, 'DB specialist', 9400);
+INSERT INTO ksiegowosc.pensja VALUES(DEFAULT, 'DevOps', 7000);
+
+--dodanie rekordow to tabeli premia
+
+INSERT INTO ksiegowosc.premia VALUES(DEFAULT, 'Swietna kreatywnosc', 200);
+INSERT INTO ksiegowosc.premia VALUES(DEFAULT, 'Dowiezione zadania', 100);
+INSERT INTO ksiegowosc.premia VALUES(DEFAULT, 'Rozbudowa home office', 200);
+INSERT INTO ksiegowosc.premia VALUES(DEFAULT, 'Rozbudowa stanowiska', 500);
+INSERT INTO ksiegowosc.premia VALUES(DEFAULT, 'Premia na urlop', 700);
+INSERT INTO ksiegowosc.premia VALUES(DEFAULT, 'Dowiezione zadania', 300);
+INSERT INTO ksiegowosc.premia VALUES(DEFAULT, 'Pozyskanie klienta', 200);
+INSERT INTO ksiegowosc.premia VALUES(DEFAULT, 'Blyskotliwosc', 1000);
+INSERT INTO ksiegowosc.premia VALUES(DEFAULT, 'Myslenie poza schematem', 200);
+INSERT INTO ksiegowosc.premia VALUES(DEFAULT, 'Premia sportowa', 1000);
+
+/*
+dodanie rekorkow do tabeli wynadrodzenie
+/id_wynagrodznia/data/id_pracownika/id_godziny/id_pensji/id_premii
+*/
+
+INSERT INTO ksiegowosc.wynagrodzenie VALUES(DEFAULT, '2020-10-05', 9, 6, 6, 4);
+INSERT INTO ksiegowosc.wynagrodzenie VALUES(DEFAULT, '2020-10-05', 1, 2, 5, 7);
+INSERT INTO ksiegowosc.wynagrodzenie VALUES(DEFAULT, '2020-10-05', 4, 7, 10, 6);
+INSERT INTO ksiegowosc.wynagrodzenie VALUES(DEFAULT, '2020-10-05', 2, 8, 7, NULL);
+INSERT INTO ksiegowosc.wynagrodzenie VALUES(DEFAULT, '2020-10-05', 6, 1, 3, 2);
+INSERT INTO ksiegowosc.wynagrodzenie VALUES(DEFAULT, '2020-10-05', 3, 4, 8, 9);
+INSERT INTO ksiegowosc.wynagrodzenie VALUES(DEFAULT, '2020-10-05', 8, 10, 1, NULL);
+INSERT INTO ksiegowosc.wynagrodzenie VALUES(DEFAULT, '2020-10-05', 10, 9, 9, 8);
+INSERT INTO ksiegowosc.wynagrodzenie VALUES(DEFAULT, '2020-10-05', 7, 3, 4, 3);
+INSERT INTO ksiegowosc.wynagrodzenie VALUES(DEFAULT, '2020-10-05', 5, 5, 2, NULL);
+
+--ZAD6
+
+--a) wyswietl tylko id pracownika oraz jego nazwisko
+SELECT id_pracownika, nazwisko FROM ksiegowosc.pracownicy
+
+--b) wyświetl id pracowników, ktorych płaca jest wieksza niz 1000 zł
+--musimy zrobic joina tabeli pracownicy oraz wynagrodzenia
+--join bdzie za pomoca pola id pracownika oraz id pensji
+--aby to zadzailalo rzeba przede wszysstkim utworzyc aliasy do poszczegolnych tabel
+--tworzymy polaczenia pomiedzy tabelami wynagrodzenie, pensje oraz pracownicy
+--polaczenia tworzymy za pomoca kluczy glowych oraz kluczy obcych
+
+SELECT pra.id_pracownika FROM ksiegowosc.pracownicy pra
+JOIN ksiegowosc.wynagrodzenie wy ON pra.id_pracownika = wy.id_pracownika
+JOIN ksiegowosc.pensja pen ON wy.id_pensji = pen.id_pensji WHERE kwota > 1000
+
+
+--c) wyswietl pracownikow, nieposiadających premii, ktorych płaca jest wieksza niz 2000 zł
+SELECT pra.imie, pra.nazwisko FROM ksiegowosc.pracownicy pra
+JOIN ksiegowosc.wynagrodzenie wy ON pra.id_pracownika = wy.id_pracownika
+JOIN ksiegowosc.pensja pen ON pen.id_pensji = wy.id_pensji
+WHERE wy.id_premii IS NULL AND pen.kwota > 2000
+
+--d) wyswietl pracowników ktorych pierwsza litera imienia zaczyna sie na litere 'J'
+--trzeba pamietac ze w posgresie symbol dowolnego ciągu znaków to %, w przeciwienstwie do mssql gdzie jest to *
+
+--zmiana z J na R
+SELECT * FROM ksiegowosc.pracownicy WHERE Imie like 'R%';
+
+--e) wyswietl pracownikow ktorych nazwisko zawiera litere 'n', oraz konczy sie na litere 'a'.
+SELECT * FROM ksiegowosc.pracownicy WHERE Nazwisko like '%n%a';
+
+--f) wyswietl imie i nazwisko pracownikow oraz liczbe ich nadgodzin, przyjmujac ze standardowy czas pracy to 160h
+--zrobimy zlacznie tabel pracownicy oraz godziny
+
+SELECT pra.imie, pra.nazwisko, godz.liczba_godzin-160 AS Liczba_nadgodzin  FROM ksiegowosc.pracownicy pra 
+JOIN ksiegowosc.godziny godz ON pra.id_pracownika = godz.id_pracownika WHERE godz.liczba_godzin > 160
+
+--g) ywswietlr imie i nazwisko pracownikow ktorych pensja zawiera sie w przedziale 1500 a 3000
+--robimy zlaczenie tabel pracownicy, pensja oraz wynagrodzenie
+
+SELECT pra.imie, pra.nazwisko FROM ksiegowosc.pracownicy pra
+JOIN ksiegowosc.wynagrodzenie wyn ON pra.id_pracownika = wyn.id_pracownika
+JOIN ksiegowosc.pensja pen ON pen.id_pensji = wyn.id_pensji WHERE pen.kwota >= 1500 AND pen.kwota <= 3000
+
+
+--h) wyswietl imiona i nazwiska pracownikow ktorzy pracowali w nadgodzinach oraz nie otrzymali premii
+--musimy polaczyc 3 tabele i sprawdzac czy pole id_premii jest nulem
+
+--najpierw polaczmy tabele wynagrodznia z tabela premii
+--nastepnie dolaczymy do tego tabele pracownicy oraz godziny i ustalimy warunki
+
+
+--mozna dopisac NOT przed NULLEM zeby sprawdzic dzialanie
+SELECT pra.imie, pra.nazwisko FROM ksiegowosc.wynagrodzenie wyn
+JOIN ksiegowosc.pracownicy pra ON pra.id_pracownika = wyn.id_pracownika
+JOIN ksiegowosc.godziny godz ON godz.id_godziny = wyn.id_godziny WHERE id_pensji IS  NULL AND godz.liczba_godzin > 160
+
+--i) uszereguj pracownikow wedlug pensji
+
+SELECT * FROM ksiegowosc.wynagrodzenie wyn
+JOIN ksiegowosc.pensja pen ON wyn.id_pensji = pen.id_pensji ORDER BY pen.kwota
+
+--j) uszereguj pracownikow wedlug pesji i premii malejaco
+
+--wg pensji:
+
+SELECT wyn.id_pracownika, pen.kwota FROM ksiegowosc.wynagrodzenie wyn
+JOIN ksiegowosc.pensja pen ON wyn.id_pensji = pen.id_pensji ORDER BY pen.kwota DESC
+
+--wg premii
+
+SELECT wyn.id_pracownika, pre.kwota FROM ksiegowosc.wynagrodzenie wyn
+JOIN ksiegowosc.premia pre ON wyn.id_premii = pre.id_premii ORDER BY pre.kwota DESC
+
+
+
+--k) zlicz i pogrupuj pracownikow wedlug pola 'stanowisko'
+--do tego zadania wykorzystamy poecenie group by oraz count
+--misimy zklaczyc tabele pracownicy, wynagrodzenie oraz pensja
+--po selekcie mozna wypisac wszyskei atrybuty po których grupowalismy oraz te ktore sa agrumentami funkcji agregujacych
+
+SELECT pen.stanowisko, COUNT(pen.stanowisko) AS iloscStanowisk FROM ksiegowosc.pensja pen
+JOIN ksiegowosc.wynagrodzenie wyn ON wyn.id_pensji = pen.id_pensji
+GROUP BY pen.stanowisko
+
+
+--l) policz srednia, minimalna i maksymalna płace dla dowolnego stanowiska
+--wykorzystamy polecenia JOIN, GROUP BY, oraz MIN, MAX i AVG
+SELECT pen.stanowisko, MIN (pen.kwota) AS kwota_minimalna, MAX(pen.kwota) AS kwota_Maksymalna, AVG(pen.kwota) AS srednia_pensja FROM ksiegowosc.pensja pen
+JOIN ksiegowosc.wynagrodzenie wyn ON pen.id_pensji = wyn.id_pensji
+GROUP BY pen.stanowisko HAVING pen.stanowisko = 'JuniorJavaDeveloper'
+--polecenie having dotyczy tylko danych zagregowanych
+
+--m) policz sume wszytskich wynagrodzen
+/*
+
+--zlaczenie jest potrzebne aby sql zsumowal rowniez pracownikow ktorzy posiadaja to samo idPensji
+--jesi bysmy sumowali wynagrodzenia tylko w tablei pensje, dostalismysym tylko sume zarobkow ze wszyskich znatowisk,
+--bez uwzglednienia ilosci tych stanowisk
+*/
+
+SELECT SUM (pen.kwota) AS suma_wszystkich_wynagrodzen FROM ksiegowosc.wynagrodzenie wyn
+JOIN ksiegowosc.pensja pen ON wyn.id_pensji = pen.id_pensji
+
+--n) policz sume wynagrodzen w ramach danego stanowiska
+--zastosujemy tu joina, grupowanie oraz sumowanie
+
+SELECT pen.stanowisko, SUM (pen.kwota) AS suma_WynagrodzenIA_Na_Stanowisku FROM ksiegowosc.wynagrodzenie wyn
+JOIN ksiegowosc.pensja pen ON wyn.id_pensji = pen.id_pensji
+GROUP BY pen.stanowisko
+
+
+--o) wyznacz liczbe premii przyznanych dla pracownikow danego stanowiska
+/*
+musimy najpierw dokonac zlaczenia tabel wynagrodznie, pensja oraz premia 
+*/
+
+SELECT stanowisko, COUNT(pre.id_premii) AS iloscPrzyznanychpremiiDlastanowiska FROM ksiegowosc.wynagrodzenie wyn
+JOIN ksiegowosc.pensja pen ON wyn.id_pensji = pen.id_pensji
+JOIN ksiegowosc.premia pre ON wyn.id_premii = pre.id_premii
+GROUP BY pen.stanowisko
+
+
+
+
+--p) usun wszystkich pracownikow majacych pensje mniejsza niz 1200 zł
+--zastosujemy zapytanie zagniezdzonnen, najpierw wyodrebnimy pracownikow ttorzy maja pensje mniejsza niz 1200 a pozniej wsadzimy to do delete
+
+--??
+DELETE FROM ksiegowosc.pracownicy pra WHERE pra.id_pracownika = wyn.id_pracownika
+JOIN ksiegowosc.wynagrodzenie wyn
+JOIN ksiegowosc.pensja pen ON pen.id_pensji = wyn.id_pensji
+WHERE pen.kwota < 1200
+
+
+
+
+
+
+
+
+
