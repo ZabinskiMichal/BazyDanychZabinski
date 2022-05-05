@@ -1,0 +1,147 @@
+{\rtf1\ansi\ansicpg1250\cocoartf2580
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww12980\viewh13940\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 Atrybuty w tabeli zam\'f3wienia:\
+\
+-id_produktu\
+-nazwa_produktu\
+-id_klienta\
+-nazwa_klienta\
+-data_zam\'f3wienia\
+-cena_produktu\
+-ilo\uc0\u347 \u263 \
+-VAT\
+-suma_brutto\
+-suma_netto\
+\
+Przyjmuj\uc0\u261 c nast\u281 puj\u261 ce za\u322 o\u380 enia:\
+-Vat r\'f3\uc0\u380 ni si\u281  w zale\u380 no\u347 ci od typu produktu\
+-Suma brutto to suma netto plus VAT\
+-Zam\'f3wienia klientow w tym samym dniu s\uc0\u261  \u322 \u261 czone. Mamy tylko jedno zamowienie jednego produktu dla danego klienta dziennie\
+-Nazwa produkt\'f3w i nazwy klient\'f3w s\uc0\u261  unikalne\
+\
+\'97zale\uc0\u380 no\u347 \u263  funkcyjn\u261  wyst\u281 puje wtedy gdy warto\u347 \u263  jednego atrybutu tabeli determinuje warto\u347 \u263  innego atrybutu\
+\
+ZAD1 Wypisz zale\uc0\u380 no\u347 ci funkcyjne:\
+\
+Poniewa\uc0\u380  id_produktu nie jest kluczem g\u322 \'f3wnym:\
+Id_produktu -> nazwa_produktu,  cena_produktu,  VAT,  suma_brutto, suma_netto\
+\
+\'97nazwa produktu jest unikalna, wi\uc0\u281 c mo\u380 emy uzyska\u263  id_produktu\
+nazwa_produktu -> VAT, cena_produktu, suma_netto, suma_brutto \
+\
+-data zam\'f3wnienia poniewa\uc0\u380  jeden klient mo\u380 e zam\'f3wi\u263  tylko jeden produkt danego dnia\
+id_klienta -> nazwa_klienta, data_zam\'f3wienia, ilo\uc0\u347 \u263 \
+\
+-Poniewa\uc0\u380  jest tylko jedno zamowienie dla jednego klienta dziennie\
+Nazwa_klienta -> data_zam\'f3wienia\
+\
+-Podobnie\
+data_zam\'f3wienia -> Nazwa_klienta, ilo\uc0\u347 \u263 , id_klienta\
+\
+Nie wiedz\uc0\u261 c jaki jest VAT nie obliczymy ceny netto\
+Cena produktu -> suma_brutto\
+\
+-raczej rodzaj ??\
+VAT -> nazwa_produktu\
+\
+Suma_brutto -> cena_produktu\
+\
+Suma_netto - raczej cie\uc0\u380 ko wy\u322 uska\u263  z tego cen\u281  brutto niewiedz\u261 c jaki jest rodzaj produktu i jaki jest na niego VAT\
+\
+\
+\
+\'97mo\uc0\u380 emy tez wydzieli\u263  zale\u380 no\u347 ci funkcyjne wielowarto\u347 ciowe\
+\
+Przyk\uc0\u322 adowa zale\u380 no\u347 \u263  wielofunkcyjna trywialna:\
+VAT, suma_brutto, suma_netto, cena_produktu, rodzaj_produktu -> cena_produktu\
+\
+Nietrywialna:\
+cena_produktu, suma_netto, suma_brutto -> suma_brutto, VAT\
+\
+Ca\uc0\u322 kowicie nietrywialna:\
+nazwa_produktu, suma_netto -> cena_produktu\
+\
+\
+ZAD2 wypisz wszystkie klucze kandyduj\uc0\u261 ce\
+Klucz kandyduj\uc0\u261 cy jednoznaczne identyfikuje rekord w tabeli\
+\
+-id_produktu\
+\
+-poniewa\uc0\u380  klient mo\u380 e zam\'f3wi\u263  klika rzeczy w kilka r\'f3\u380 nych dni\
+-id_klienta+data_zam\'f3wienia\
+\
+Poniewa\uc0\u380  nazwy produkt\'f3w oraz nazwy klient\'f3w s\u261  unikalne:\
+-nazwa_produktu\
+-nazwa_klienta \
+\
+\
+\
+ZAD3\
+\
+Tabela pomieszczenia:\
+id_pomieszczenia,\
+numer_pomieszczenia,\
+id_budynku,\
+Powierzchnia,\
+liczba_okien,\
+liczba_drzwi,\
+Ulica,\
+Miasto,\
+kod_pocztowy,\
+\
+\
+Przyjmuj\uc0\u261 c za\u322 o\u380 enie:\
+id_pomieszczenia to autoinkrementowalny, unikalny identyfikator pomieszczenia w tabeli,\
+Okre\uc0\u347 l zale\u380 no\u347 ci funkcyjne\
+id_pomieszczenia -> numer_pomieszczenia, id_budynku, powierzchnia, liczba_okien, liczba_drzwi\
+\
+numer_pomieszczenia -> id_pomieszczenia, id_budynku, powierzchnia, liczba_okien, liczba_drzwi\
+\
+By\uc0\u263  mo\u380 e \
+id_budynku -> ulica, miasto, kod_pocztowy\
+\
+Ulica-> miasto, kod_pocztowy\
+\
+Miasto -> kod_pocztowy\
+\
+kod_pocztowy -> ulica, miasto \
+\
+Przyk\uc0\u322 ady zale\u380 no\u347 ci wielowarto\u347 ciowych:\
+\
+Trywialna:\
+\
+id_pomieszczenia, numer_pomieszczenia, id_budynku -> numer_pomieszczenia\
+\
+Nietrywialna:\
+id_pomieszczenia, ulica, kod_pocztowy -> id_pomieszczenia, miasto\
+\
+Ca\uc0\u322 kowicie nietrywialna:\
+Ulica, miast -> kod pocztowy  \
+\
+\
+\
+KLUCZE KANDYDUJACE:\
+-id_pomieszczenia\
+\
+Zak\uc0\u322 adaj\u261 c ze numery budynk\'f3w nie powtarzaj\u261  si\u281 \
+-numer_pomieszczenia+id_budunku\
+\
+Ew. Powierzchnia, najprawdopodobniej te\uc0\u380  unikalnie reprezentowa\u322 a  by dane pomieszczenie \
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+\
+}
