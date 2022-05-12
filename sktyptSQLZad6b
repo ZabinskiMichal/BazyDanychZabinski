@@ -1,0 +1,68 @@
+ZAD6b
+--a) zmodyfikuj numer telefonu w tabeli pracownicy, dodajac do niego numer kierunkowy dla polski w nawiasie (+48)
+
+--poniewaz telefon przechowuje w kolumnie typu int, tworze nowa kolumne
+ALTER TABLE ksiegowosc.pracownicy ADD COLUMN nr_tel_zmodyfikowany varchar(15);
+--dodanie do nowej koluny nr tel poprzedzonych nr kierukowym
+UPDATE ksiegowosc.pracownicy SET nr_tel_zmodyfikowany = ('(+48)' || telefon)
+
+--sprawdzenie
+SELECT * FROM ksiegowosc.pracownicy
+
+--b) zmodyfikuj atrybut w telefon w tabeli pracownicy tak aby numer byl oddzielony myslnikami
+
+--numer pierwszy: 440321820
+--drugi argument w substringu oznacza od ktorego znaku chemy napis, trzeci argument to ilosc znakow
+--zaczynamy liczyc od 1 a nie od 0
+SELECT nr_tel_zmodyfikowany, substring(nr_tel_zmodyfikowany, 1, 8) || '-' || substring(nr_tel_zmodyfikowany, 9, 3) || '-' || SUBSTRING(nr_tel_zmodyfikowany, 12, 3) "z myslnikiem" FROM ksiegowosc.pracownicy;
+
+--stworzneie nowej kolumny do przechowania tych danych
+ALTER TABLE ksiegowosc.pracownicy ADD COLUMN tel_z_myslnikiem varchar(20);
+
+UPDATE ksiegowosc.pracownicy SET tel_z_myslnikiem = substring(nr_tel_zmodyfikowany, 1, 8) || '-' || substring(nr_tel_zmodyfikowany, 9, 3) || '-' || SUBSTRING(nr_tel_zmodyfikowany, 12, 3);
+
+--sprawdzenie
+SELECT * FROM ksiegowosc.pracownicy
+
+--c) wyswietl dane pracownika, ktorego nazwisko jest najdluzsze, uzywajac duzych liter
+select LENGTH(nazwisko) from ksiegowosc.pracownicy
+--limit 1 odpowiada za wyswietlenie tylko pierwszego rekordu 
+SELECT upper(nazwisko) FROM ksiegowosc.pracownicy ORDER BY LENGTH(nazwisko) DESC LIMIT 1 
+
+--d) wyswietl dane pracownikow i ich pensje zakodowane przy pomocy alorytmu md5 
+--musimy zlaczyc tabele pracownicy, pensje oraz wynagrodzenie
+SELECT MD5(Imie) AS imie_zaszyfrowane, MD5(Nazwisko) AS nazwisko_zaszyfrowane, MD5(Adres) AS adres_zaszyfrowany, MD5(nr_tel_zmodyfikowany) AS telefon_zaszyfrowany FROM ksiegowosc.pracownicy
+
+
+--aby kodowanie typow innych niz string dzialalo, nalezy umiescic je w apostrofach oraz zrobic cos ala toString
+--MD5 dziala tylko na stringach
+SELECT MD5(pen.kwota::text) AS ktowa_zaszyfrowana, MD5(Imie) AS imie_zaszyfrowane, MD5(Nazwisko) AS nazwisko_zaszyfrowane, MD5(Adres) AS adres_zaszyfrowany, MD5(nr_tel_zmodyfikowany) AS telefon_zaszyfrowany FROM ksiegowosc.pracownicy pra
+JOIN ksiegowosc.wynagrodzenie wyn ON pra.id_pracownika = wyn.id_pracownika
+JOIN ksiegowosc.pensja pen ON pen.id_pensji = wyn.id_pensji
+
+
+--f) wyswietl pracownikow, ich pensje oraz premie wykorzystujac zlaczenie lewostronne
+--złaczenie lewostronne zwraca talebe z lewej strony oraz dokleja do niej pasujace rekordy z prawej tabeli
+--czyli priotytetowo beda tu rekordy z tabeli pracownicy
+--inner join - zlaczenie wewnetrzne, uzyskanie tylko części wspolnej z table, cos ala czesc wspolna
+--full outer join to cos ala suma 
+
+--co co jest po wyrazeniu LEFT JOIN jest ta lewa tabela, do ktorej bedziemy doklejać
+SELECT pra.imie, pra.nazwisko, pen.id_pensji, pre.id_premii FROM ksiegowosc.pracownicy pra
+LEFT JOIN ksiegowosc.wynagrodzenie wyn ON pra.id_pracownika = wyn.id_pracownika
+LEFT JOIN ksiegowosc.pensja pen ON wyn.id_pensji = pen.id_pensji
+LEFT JOIN ksiegowosc.premia pre ON wyn.id_premii = pre.id_premii
+
+--g) wygeneruj raport (zapytanie), które zwróci w wyniki treść wg poniższego szablonu:
+Pracownik Jan Nowak, w dniu 7.08.2017 otrzymał pensję całkowitą na kwotę 7540 zł, 
+gdzie wynagrodzenie zasadnicze wynosiło: 5000 zł, premia: 2000 zł, nadgodziny: 540 zł
+
+SELECT 'Pracownik ' || pra.Imie || ' '|| Nazwisko || ', w dniu ' || wyn.dejt || 
+' otrzymał pensję całkowitą na kwotę ' || pen.kwota+pre.kwota+(liczba_godzin-160)*20 || ' zł, gdzie wynagrodzenie zasadnicze wynosiło: '
+|| pen.kwota || ' zł, premia: ' || pre.kwota || ', nagdodziny: ' || (liczba_godzin-160)*20
+AS raport from ksiegowosc.pracownicy pra 
+JOIN ksiegowosc.wynagrodzenie wyn ON pra.id_pracownika = wyn.id_pracownika
+JOIN ksiegowosc.pensja pen ON wyn.id_pensji = pen.id_pensji
+JOIN ksiegowosc.premia pre ON wyn.id_premii = pre.id_premii
+JOIN ksiegowosc.godziny godz ON pra.id_pracownika = godz.id_pracownika
+
