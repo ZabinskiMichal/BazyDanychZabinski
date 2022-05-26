@@ -1,0 +1,138 @@
+--Zad1: Napisz procedure wypisującą do konsoli ciąg Fibonacciego. Procedura musi przujmować jako argument 
+--liczbę n. Generowanie ciągu musi zostać zaimplenetowane jako osobna funkcja, wywoływana przez proceedue.
+
+--tabela pomicnicza
+CREATE TABLE ksiegowosc.fibo(
+	wartosc INT
+);
+
+CREATE OR REPLACE PROCEDURE wypisz (IN liczba INT)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+DELETE FROM ksiegowosc.fibo;
+--tutaj jeszcze nie dziala wyswietlanie wartosci utworzonego ciagu
+--SELECT wartosc FROM ksiegowosc.fibo AS wartosci;
+--RAISE NOTICE 'liczba to %', liczba;
+--RAISE NOTICE 'wynik to: %', Fibo(liczba);
+INSERT INTO ksiegowosc.fibo VALUES (Fiboo(liczba));
+--RAISE NOTICE '%', to_json(SELECT wartosc FROM ksiegowosc.fibo);
+--SELECT array_to_json(array_agg(ksiegowosc.fibo)) FROM ksiegowosc.fibo;
+END;
+$$;
+
+--funkcja ktora bedzie zwracała wyrazy ciagu Fibonacciego
+CREATE OR REPLACE FUNCTION Fiboo(num integer)
+--zadeklarowanie tego co funckja bedzie zwracala
+--zmiana z setof na records
+RETURNS SETOF integer AS $$
+DECLARE
+--pierwszy element ciagu to 0
+a integer = 0;
+--drugi element ciagu to 1
+b integer = 1;
+BEGIN
+--dla zera lub liczby mniejszej nie zwracami nic
+IF (num <= 0)
+THEN RETURN;
+END IF;
+--return next nie powoduje ze z naszej fukcji jest zrocone tylko a, lecz a zostaje dołączone do strukury danych,
+--która zostanie zwrócona 
+RETURN NEXT a;
+LOOP
+--warunek stopu naszj procedury rekurencyjnej
+EXIT WHEN num <= 1;
+--doklejenie b do konca zwracanej struktury
+RETURN NEXT b;
+--zmiejsszamy cały czas nasz indeks 
+num = num - 1;
+--nasze nowe a jest teraz równe poprzednie b, naromait b jest rowne poprzenie a + poprzednie b 
+
+SELECT b, a + b INTO a, b;
+END LOOP;
+END;
+$$ language plpgsql;
+
+
+--WYWOŁANIE PROCEDURY WYWYLUJĄCEJ FINCKCJE OBLICZAJACA WYRAZY CIAGU FIBONAACIEGO
+--maksymalna wartosicia ktora mozna tu wpisac, jeśli typem danych jest int to 46
+call wypisz(5)
+
+SELECT * FROM ksiegowosc.fibo;
+
+SELECT Fiboo(10);
+
+--Zad2: Napisz trigger DML, który po wprowadzeniu danych do tabeli Persons, zmodyfikuje nazisko tak
+--aby było napisane duzymi literami
+
+
+CREATE OR REPLACE FUNCTION toUpper()
+RETURNS trigger 
+LANGUAGE 'plpgsql'
+AS $$
+BEGIN 
+--dodatkowe wyswietlenie komunikatu o zadzianiu trigera
+RAISE NOTICE 'Nazwisko zostało zmodyfikowane';
+--ten select dziala, wraca wysletla ostnio dodanego pracownika oraz zmienia jego nazwiko na duza litere
+--SELECT id_pracownika, nazwisko FROM ksiegowosc.pracownicy ORDER BY id_pracownika DESC LIMIT 1
+
+--z nowo dodanego rekordu, opdatujemy nazwiko na pisane duzymi literami
+new.nazwisko = UPPER(new.nazwisko);
+return new;
+END;
+$$;
+
+--Wbrew pozorom wykorzystamy slowo kluczowe before, nie after, nasz rekord zostanie zmodyfikowany jeszcze przed dodatniem do tablei
+--bedzie to INSERT event triger, zostanie wywołany tylko w przypadku gdy ktos doda rekord do tabeli
+CREATE TRIGGER afterInsrt 
+BEFORE INSERT
+ON ksiegowosc.pracownicy
+FOR EACH ROW 
+EXECUTE PROCEDURE toUpper()
+
+
+--sprawdzenie czy dziala
+INSERT INTO ksiegowosc.pracownicy VALUES (DEFAULT, 'Filip', 'Trzaskowski1', 'Zwyciestwa 4', 440321123);
+
+SELECT imie, nazwisko, id_pracownika FROM ksiegowosc.pracownicy ORDER BY id_pracownika DESC LIMIT 5
+
+
+--Zad3: przygotuj trigger 'taxRateMonitoring', ktory wyswietli kominikat o błedzie, 
+--jeśli nastąpi zmiana wartosci w polu TaxRate o wiecej niz 30% 
+
+create table ksiegowosc.tabela(
+	TaxRate integer
+)
+
+CREATE TRIGGER taxRateMonitoring 
+BEFORE INSERT 
+ON ksiegowosc.tabela
+FOR EACH ROW
+EXECUTE PROCEDURE comunicat()
+
+
+CREATE OR REPLACE FUNCTION comunicat()
+RETURNS TRIGGER
+AS $$
+BEGIN  
+IF new.TaxRate > 30
+THEN
+RAISE WARNING 'Wartosc pola TaxRate uległa zmaiaie o wiecej niz 30 procent';
+END IF;
+RETURN NEW;
+END;
+$$
+LANGUAGE plpgsql
+
+INSERT INTO ksiegowosc.tabela VALUES (20);
+INSERT INTO ksiegowosc.tabela VALUES (31);
+
+
+
+
+
+
+
+
+
+
