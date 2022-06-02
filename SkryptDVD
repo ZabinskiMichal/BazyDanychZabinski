@@ -1,0 +1,50 @@
+--Glowym celem CTE jest uporszczenie skomplikowanych zapytań
+--wyrażenia tabliowe są bardzo podobne do zapytań zagnieżdżonych, w ktorch przypadku najpiwer zostaje
+--wywołane zapytanie wewnętrze, tak aby zapytanie zewnętrzne mogło na  nim wykonć zadanie, przyklad
+--podzaptanie musi posiadać swój alias
+SELECT imie FROM (SELECT imie, nazwisko FROM ksiegowosc.pracownicy) podZapytanie
+
+--najlepiej jest utworzyć kilka wyrażeń tablicowych z danymi które potrzebujym, a nastepnie łączene
+--ich według potrzeb
+
+--Zad1: Wykorzystując wyrażenie CTE zbuduj zapytanie, które znajdzie informacje na temat stawki pracownika
+--oraz jego danych, a następnie zapisze je w tabeli tymczasowej TempEmployeeInfo. 
+--Rozwiąż w oparciu o Adventure works
+
+--zmodufikujemy zadanie na:
+--zbuduj zapytanie ktore znajdzie informacje na temat stawki aktora oraz jego danych,
+--a następnie zapisze je w tabeli tymczasowej
+
+
+--Zad2: Uzyskaj informacje na temat przychodów ze sprzedaży wedlug firmy i kontaktów(za pomoca CTE 
+--i bazy AdventureWorksLT)
+
+--zmodyfikujemy na sprawdzenie ile koszyuje wypozyczenie wszyskich filmow w ktorych gra dany aktor
+SELECT actor_id FROM film_actor
+GROUP BY actor_id
+
+WITH aktorzy_id AS(
+	SELECT film_id, actor_id FROM film_actor
+), aktorzy_imiona AS(
+	SELECT actor_id, first_name, last_name FROM actor
+), inwentarz AS(
+	SELECT inventory_id, film_id FROM inventory
+), wypozyczenia AS(
+	SELECT inventory_id, rental_id FROM rental
+), platnosci AS(
+	SELECT rental_id, amount FROM payment
+), infoOFilmie AS(
+	SELECT film_id FROM film
+)
+--wszystkie połączenia aby dosc z ceny za wypozyczenie do nazwiska aktora
+SELECT last_name, sum(amount) FROM platnosci
+JOIN wypozyczenia USING (rental_id)
+JOIN inwentarz USING (inventory_id)
+JOIN infoOFilmie USING(film_id)
+JOIN aktorzy_id USING (film_id)
+JOIN aktorzy_imiona USING (actor_id)
+GROUP BY last_name
+
+
+
+

@@ -1,0 +1,55 @@
+--Glowym celem CTE jest uporszczenie skomplikowanych zapytań
+--wyrażenia tabliowe są bardzo podobne do zapytań zagnieżdżonych, w ktorch przypadku najpiwer zostaje
+--wywołane zapytanie wewnętrze, tak aby zapytanie zewnętrzne mogło na  nim wykonć zadanie, przyklad
+--podzaptanie musi posiadać swój alias
+SELECT imie FROM (SELECT imie, nazwisko FROM ksiegowosc.pracownicy) podZapytanie
+
+--najlepiej jest utworzyć kilka wyrażeń tablicowych z danymi które potrzebujym, a nastepnie łączene
+--ich według potrzeb
+
+--Zad1: Wykorzystując wyrażenie CTE zbuduj zapytanie, które znajdzie informacje na temat stawki pracownika
+--oraz jego danych, a następnie zapisze je w tabeli tymczasowej TempEmployeeInfo. 
+--Rozwiąż w oparciu o Adventure works
+
+WITH danePersonalne AS(
+	SELECT imie, nazwisko, telefon, id_pracownika
+	FROM ksiegowosc.pracownicy
+), tabelaLaczaca AS(
+	SELECT id_pracownika, id_pensji, id_premii
+	FROM ksiegowosc.wynagrodzenie
+), zarobki AS(
+	SELECT id_pensji, stanowisko, kwota
+	FROM ksiegowosc.pensja
+)
+--złącznienie naszych wyrażeń tablicowych, wstanienie do tabeli tymczasowej
+SELECT imie, nazwisko, stanowisko, kwota INTO TEMPORARY TABLE tabelaTymczasowa
+FROM danePersonalne
+JOIN tabelaLaczaca USING (id_pracownika)
+JOIN zarobki USING (id_pensji)
+
+--sprawdzenie zawartosci tabeli tymczasowej
+SELECT * FROM tabelaTymczasowa
+
+
+--Zad3: Napisz zapytanie, które zwróci wartość sprzedaży dla poszczególnych Produktow
+--zmodyfikujemy to zadanie, i zwrócimy łączną sume, jaką zarabiają osoby na danym stanowisku w naszej firmie
+
+--utworzenie pierwszego wyrażenia tablicowego
+WITH stanowiska AS(
+	SELECT stanowisko, kwota, id_pensji FROM ksiegowosc.pensja
+),
+--utworzenie drugiego wyrażenia tablicowego
+wynagrodzenie AS(
+	SELECT id_pensji FROM ksiegowosc.wynagrodzenie
+)
+--funckje agregujące oraz warunku dodajemy poza ciałem wyrażenia tablicowego
+SELECT stanowisko, SUM(kwota)
+FROM stanowiska
+--zastosowanie JOINA i złącznie dwóch wyrażeń tablicowych
+JOIN wynagrodzenie USING (id_pensji)
+GROUP BY stanowisko
+
+
+
+
+
